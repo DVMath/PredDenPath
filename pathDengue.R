@@ -382,6 +382,7 @@ myttime = 30
 
 # if data was previously saved
 # in the first run should be TRUE
+# data can be downloaded from dryad
 captura = FALSE
 if (captura) {
   df.all <- lapply(1:ldim, function(x) {getAlertData(x, mtype = "all")}) 
