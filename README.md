@@ -1,7 +1,7 @@
 # PredDenPath
 
 # Repository of Code and Data of study with title "Predicting high dengue incidence in municipalities of Brazil using path signatures"
-# Author: Daniel A.M. Villela, Programa de Computacão Científica, Fundacão Oswaldo Cruz
+## Author: Daniel A.M. Villela, Programa de Computacão Científica, Fundacão Oswaldo Cruz
 
 Script path_functions.R contains helper functions
 
