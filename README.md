@@ -12,6 +12,6 @@ running distributed in a set of CPU cores.
 
 The flag captura is set to FALSE to use the pre-processed data, given by the RData file.
 
-Usage: Rscript --no-save pathDengue 1 156 
+Usage: Rscript --no-save pathDengue.R 1 156 
 
 The arguments mean that all configurations with differents values of k and number of weeks will be tested.
