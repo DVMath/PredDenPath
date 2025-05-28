@@ -614,12 +614,14 @@ mf <- as.numeric(myargs[2])
   mf <- dim(conf.df)[1]
 }
 
+library(binom)
+
 #foreach( ll = 1:(dim(conf.df)[1]), .combine = bind_rows, .packages = c("tidyverse"),
 #         .errorhandling = "remove") %do% {
-foreach( ll = mi:mf, .combine = bind_rows, .packages = c("tidyverse"),
+foreach( ll = mi:mf, .combine = bind_rows, .packages = c("tidyverse", "binom"),
          .errorhandling = "remove"
          ) %do% {
-          # print(paste0("ll now is ", ll))
+          print(paste0("ll now is ", ll))
 k = conf.df[ll,]$k
 myttime = conf.df[ll,]$myttime
 resdf <- data.frame()
@@ -683,12 +685,20 @@ resdf <- data.frame()
     
     tabs <- table(ytoptest, ypred)
     tabs
+    
+    sens_h = 0
+    sens_l = 0
+    tabsens =0
     iw <- which(dimnames(tabs)$ypred=="1")
     if (sum(dimnames(tabs)$ypred=="1")<=0) {
       sens = 0
     } else {
     if (iw ==1 || iw==2) {
       sens <- tabs[2,iw]/sum(tabs[2,])
+      tabsens = sum(tabs[2,])
+      bin1 = binom.confint(tabs[2,iw], sum(tabs[2,]), methods = c("wilson"))
+      sens_h = bin1$upper
+      sens_l = bin1$lower
     } else {
       sens <- 0
     }
@@ -698,8 +708,13 @@ resdf <- data.frame()
     
     #sens <- tabs[2,2]/sum(tabs[2,])
     sens
+    tabespec = sum(tabs[1,])
     espec <- tabs[1,iw0]/sum(tabs[1,])
     espec
+    
+    bin1 = binom.confint(tabs[1,iw0], sum(tabs[1,]), methods = c("wilson"))
+    espec_h = bin1$upper
+    espec_l = bin1$lower
     
     youden <- sens + espec - 1    
       rsq_b =0
@@ -708,6 +723,9 @@ resdf <- data.frame()
     resdf <- bind_rows(resdf, data.frame(myttime = myttime, k = k,
                                          method = "multinomial+varnorm+time",
                                          sens = sens, espec = espec,
+                                         tabsens = tabsens, tabespec = tabespec,
+                                         sens_h = sens_h, espec_h = espec_h,
+                                         sens_l = sens_l, espec_l = espec_l,
                                          youden = youden,
                                          rsq_b = rsq_b, cor_b = cor_b
     ))
@@ -729,12 +747,20 @@ resdf <- data.frame()
     
     tabs <- table(ytoptest, ypred)
     iw <- which(dimnames(tabs)$ypred=="1")
-    
+
+    sens_h=0
+    sens_l=0
+    tabsens =0
+        
     if (sum(dimnames(tabs)$ypred=="1")<=0) {
       sens = 0
     } else {
     if (iw ==1 || iw==2) {
     sens <- tabs[2,iw]/sum(tabs[2,])
+    tabsens = sum(tabs[2,])
+    bin1 = binom.confint(tabs[2,iw], sum(tabs[2,]), methods = c("wilson"))
+    sens_h = bin1$upper
+    sens_l = bin1$lower
     } else {
       sens <- 0
     }
@@ -743,8 +769,13 @@ resdf <- data.frame()
     iw0 <- which(dimnames(tabs)$ypred=="0")
     
     sens
+    tabespec = sum(tabs[1,])
     espec <- tabs[1,iw0]/sum(tabs[1,])
     espec
+    
+    bin1 = binom.confint(tabs[1,iw0], sum(tabs[1,]), methods = c("wilson"))
+    espec_h = bin1$upper
+    espec_l = bin1$lower
     
     youden <- sens + espec - 1    
 
@@ -754,6 +785,9 @@ resdf <- data.frame()
     resdf <- bind_rows(resdf, data.frame(myttime = myttime, k = k,
                                          method = "multinomial+varNnorm+time",
                                          sens = sens, espec = espec,
+                                         tabsens = tabsens, tabespec = tabespec,
+                                         sens_h = sens_h, espec_h = espec_h,
+                                         sens_l = sens_l, espec_l = espec_l,
                                          youden = youden,
                                          rsq_b = rsq_b, cor_b = cor_b
     ))
@@ -775,11 +809,18 @@ resdf <- data.frame()
     tabs <- table(ytoptest, ypred)
     iw <- which(dimnames(tabs)$ypred=="1")
     
+    sens_h=0
+    sens_l=0
+    tabsens =0
     if (sum(dimnames(tabs)$ypred=="1")<=0) {
       sens = 0
     } else {
       if (iw ==1 || iw==2) {
         sens <- tabs[2,iw]/sum(tabs[2,])
+        tabsens = sum(tabs[2,])
+        bin1 = binom.confint(tabs[2,iw], sum(tabs[2,]), methods = c("wilson"))
+        sens_h = bin1$upper
+        sens_l = bin1$lower
       } else {
         sens <- 0
       }
@@ -788,8 +829,13 @@ resdf <- data.frame()
     iw0 <- which(dimnames(tabs)$ypred=="0")
     
     sens
+    tabespec = sum(tabs[1,])
     espec <- tabs[1,iw0]/sum(tabs[1,])
     espec
+    
+    bin1 = binom.confint(tabs[1,iw0], sum(tabs[1,]), methods = c("wilson"))
+    espec_h = bin1$upper
+    espec_l = bin1$lower
     
     youden <- sens + espec - 1    
       rsq_b = 0
@@ -798,6 +844,9 @@ resdf <- data.frame()
     resdf <- bind_rows(resdf, data.frame(myttime = myttime, k = k,
                                          method = "multinomial+varNnorm+notime",
                                          sens = sens, espec = espec,
+                                         tabsens = tabsens, tabespec = tabespec,
+                                         sens_h = sens_h, espec_h = espec_h,
+                                         sens_l = sens_l, espec_l = espec_l,
                                          youden = youden,
                                          rsq_b = rsq_b, cor_b = cor_b
     ))
@@ -829,12 +878,18 @@ resdf <- data.frame()
     # coeficientes diferentes de zero  
     c1[w1, ilambda]
     
-               
+    sens_h=0
+    sens_l=0
+    tabsens =0
     if (sum(dimnames(tabs)$ypred=="1")<=0) {
       sens = 0
     } else {
     if (iw ==1 || iw==2) {
       sens <- tabs[2,iw]/sum(tabs[2,])
+      tabsens = sum(tabs[2,])
+      bin1 = binom.confint(tabs[2,iw], sum(tabs[2,]), methods = c("wilson"))
+      sens_h = bin1$upper
+      sens_l = bin1$lower
     } else {
       sens <- 0
     }
@@ -844,8 +899,13 @@ resdf <- data.frame()
     
     iw0 <- which(dimnames(tabs)$ypred=="0")
     
+    tabespec = sum(tabs[1,])
     espec <- tabs[1,iw0]/sum(tabs[1,])
     espec
+    
+    bin1 = binom.confint(tabs[1,iw0], sum(tabs[1,]), methods = c("wilson"))
+    espec_h = bin1$upper
+    espec_l = bin1$lower
     
     youden <- sens + espec - 1    
     
@@ -855,6 +915,9 @@ resdf <- data.frame()
     resdf <- bind_rows(resdf, data.frame(myttime = myttime, k = k,
                                          method = "multinomial+varNnorm+time+leadlag",
                                          sens = sens, espec = espec,
+                                         tabsens = tabsens, tabespec = tabespec,
+                                         sens_h = sens_h, espec_h = espec_h,
+                                         sens_l = sens_l, espec_l = espec_l,
                                          youden = youden,
                                          cor_b = cor_b, rsq_b = rsq_b
     ))
@@ -875,12 +938,19 @@ resdf <- data.frame()
     tabs <- table(ytoptest, ypred)
     
     iw <- which(dimnames(tabs)$ypred=="1")
-    
+
+    sens_h=0
+    sens_l=0
+    tabsens =0
     if (sum(dimnames(tabs)$ypred=="1")<=0) {
       sens =0
     } else {
     if (iw ==1 || iw==2) {
       sens <- tabs[2,iw]/sum(tabs[2,])
+      tabsens = sum(tabs[2,])
+      bin1 = binom.confint(tabs[2,iw], sum(tabs[2,]), methods = c("wilson"))
+      sens_h = bin1$upper
+      sens_l = bin1$lower
     } else {
       sens <- 0
     }
@@ -890,8 +960,13 @@ resdf <- data.frame()
     
     #sens <- tabs[2,2]/sum(tabs[2,])
     sens
+    tabespec = sum(tabs[1,])
     espec <- tabs[1,iw0]/sum(tabs[1,])
     espec
+    
+    bin1 = binom.confint(tabs[1,iw0], sum(tabs[1,]), methods = c("wilson"))
+    espec_h = bin1$upper
+    espec_l = bin1$lower
     
     youden <- sens + espec - 1    
     
@@ -901,6 +976,9 @@ resdf <- data.frame()
     resdf <- bind_rows(resdf, data.frame(myttime = myttime, k = k,
                                          method = "multinomial+time+leadlagNorm",
                                          sens = sens, espec = espec,
+                                         tabsens = tabsens, tabespec = tabespec,
+                                         sens_h = sens_h, espec_h = espec_h,
+                                         sens_l = sens_l, espec_l = espec_l,
                                          youden = youden,
                                          cor_b = cor_b, rsq_b = rsq_b
     ))
@@ -958,6 +1036,9 @@ outdf_nolog$mlog = "nolog"
 ##
 
 outdf %>%
+  filter(!str_detect(method, "varnorm"), !str_detect(method, "leadlagNorm")) -> outdf
+
+outdf %>%
   filter(myttime > 25) %>%
   filter(!str_detect(method, "varnorm")) %>%
   filter(!str_detect(method, "leadlagNorm")) %>%
@@ -1000,6 +1081,160 @@ outdf %>%
 g
 ggsave("roc.pdf", plot = g, dpi=300)
 ggsave("roc.jpg", plot = g, dpi=300, width = 25, height = 25*golden, units = "cm")
+
+
+outdf %>%
+  #  filter(myttime %% 5 == 0) %>%
+  filter(myttime > 25) %>%
+  filter(!str_detect(method, "varnorm")) %>%
+  filter(!str_detect(method, "leadlagNorm")) %>%
+  mutate(embedding = case_when(
+    str_detect(method, "notime") ~ "no embedding",
+    str_detect(method, "leadlag") ~ "time/leadlag",
+    TRUE ~ "time"
+  )) %>%
+  ggplot(aes(x=100-espec*100, xmin = 100-100*espec_h, xmax = 100-100*espec_l,
+             ymax = sens_h*100, ymin = 100*sens_l,
+             y=sens*100, group = embedding, color = embedding)) + 
+  geom_errorbar() +
+  geom_errorbarh() +
+  geom_point() +
+  #geom_smooth() +
+  scale_color_manual(values = cbbPalette) +
+  #  geom_line() +
+  facet_wrap(myttime ~., ncol = 5) +
+  theme_bw() +
+  labs(x="1-Specificity", y = "Sensitivity") +
+  theme(legend.position = "bottom", text = element_text(size = 16)) -> g
+g
+ggsave("roc_ci.pdf", plot = g, dpi=300)
+ggsave("roc_ci.jpg", plot = g, dpi=300, width = 25, height = 25*golden, units = "cm")
+
+outdf %>% filter(myttime==45, str_detect(method, "notime")) -> x45
+#Calculate False Positive Rate (FPR)
+fpr <- 1 - x45$espec
+tpr <- x45$sens
+
+#Order the points by increasing FPR
+ord <- order(fpr)
+fpr1 <- fpr[ord]
+tpr1 <- tpr[ord]
+
+fpr <- c(0, fpr1, 1)
+tpr <- c(0, tpr1, 1)
+
+(head(tpr, -1) + tail(tpr, -1)) / 2
+
+outdf %>%
+  ungroup() %>%
+  group_by(method, myttime) %>%
+  mutate(fpr = 1-espec) %>%
+  mutate(tpr = sens) %>%
+  filter(tpr!=1, fpr!=1, fpr!=0, tpr!=0) %>%
+  mutate(logit_tpr = log((tpr/1)/(1-(tpr/1)) ) ) %>%
+  mutate(logit_fpr = log((fpr/1)/(1-(fpr/1)) ) ) %>%
+#  mutate(alpha = summary(glm(logit_tpr ~ logit_fpr))$coefficients[1,1] ) %>%
+#  mutate(beta = summary(glm(logit_tpr ~ logit_fpr))$coefficients[2,1] ) %>%
+  arrange(method, fpr, tpr) %>%
+  mutate(diff_fpr = c(NA, diff(fpr))) %>%
+  mutate(tpr_lag = lag(tpr)) %>%
+  mutate(valtrap = (tpr+tpr_lag)/2) -> xx
+
+xsum <- summary(glm(logit_tpr ~ logit_fpr, data= xx))
+xsum$coefficients
+xsum$coefficients[2,1]
+
+library(broom)
+
+new_data <- tibble(ex1 = c(0.001, 0.1, 0.2, 0.3, 0.4, 0.5, .6, .7, .8, .9, .999))
+new_data %>%
+  mutate(x1 = log(ex1/(1-ex1))) -> new_data
+
+expit <- function(X) {
+  exp(X)/(1.0+exp(X))
+}
+
+outdf %>%
+  ungroup() %>%
+  group_by(method, myttime) %>%
+  mutate(fpr = 1-espec) %>%
+  mutate(tpr = sens) %>%
+  filter(tpr!=1, fpr!=1, fpr!=0, tpr!=0) %>%
+  mutate(logit_tpr = log((tpr/1)/(1-(tpr/1)) ) ) %>%
+  mutate(logit_fpr = log((fpr/1)/(1-(fpr/1)) ) ) %>%
+  mutate(y=logit_tpr) %>%
+  mutate(x1 = logit_fpr) %>%
+  nest() %>%
+  mutate(
+    model = map(data, ~ glm(y ~ x1, data = .)),
+    predictions = map(model, ~ {
+      # Use the mean value of x2 or some logic to set x2 (since we only vary x1)
+     # mean_x2 <- mean(.x$data$x2, na.rm = TRUE)
+      newdata <- new_data
+      predict(.x, newdata = newdata, type = "response", se.fit = TRUE) %>%
+        {
+          tibble(
+            x1 = newdata$x1,
+            fit = .$fit,
+            se.fit = .$se.fit,
+            conf.low = .$fit - 1.96 * .$se.fit,
+            conf.high = .$fit + 1.96 * .$se.fit,
+            fpr = expit(newdata$x1),
+            e.fit = expit(.$fit),
+            e.conf.low = expit(.$fit - 1.96 * .$se.fit),
+            e.conf.high = expit(.$fit + 1.96 * .$se.fit),
+          )
+        }
+    })
+  ) %>%
+  unnest(predictions) -> x7
+  
+
+x7 %>%
+  filter(myttime > 25) %>%
+  ggplot(aes(x= fpr, y=e.fit, ymin = e.conf.low, ymax = e.conf.high, fill = method, 
+             color = method,
+             group=method)) +
+  geom_ribbon() +
+  scale_color_manual(values = cbbPalette) +
+  scale_fill_manual(values = cbbPalette) +
+  geom_line() + facet_wrap(myttime ~ ., ncol = 5) + theme_bw()
+
+#Function to compute trapezoidal AUC
+compute_auc <- function(fpr, tpr) {
+  sum(diff(fpr) * (head(tpr, -1) + tail(tpr, -1)) / 2)
+}
+
+x7 %>%
+  ungroup() %>%
+  group_by(method, myttime) %>%
+  summarise(auc = compute_auc(fpr,e.fit),
+            auc_h = compute_auc(fpr,e.conf.high),
+            auc_l = compute_auc(fpr, e.conf.low)) -> x_auc
+
+
+x_auc %>%
+  ggplot(aes(x=myttime, y=auc, ymin= auc_l, ymax = auc_h, 
+             fill = method,
+             color = method)) +
+  geom_ribbon(alpha=.2) +
+  geom_line() +
+  scale_color_manual(values = cbbPalette) +
+  scale_fill_manual(values = cbbPalette) +
+  theme_bw()
+
+
+x_auc %>%
+  filter(myttime >=30) %>%
+  mutate(val = paste0(round(auc,2), " (", round(auc_l,2), "-", round(auc_h,2), ")")) %>%
+  select(method, myttime, val) %>%
+  pivot_wider(names_from = method, values_from = val) -> auc_table
+
+write_csv(auc_table, file = "auc_table.csv")  
+
+#Compute the AUC
+auc <- compute_auc(fpr, tpr)
+auc
 
 
 outdf %>%
@@ -1105,6 +1340,37 @@ ggsave("sensiti2.pdf", plot = g)
 ggsave("sensiti2.jpg", plot = g)
 
 
+##
+  
+  outdf %>%
+  mutate(embedding = case_when(
+    str_detect(method, "notime") ~ "no embedding",
+    str_detect(method, "leadlag") ~ "time/leadlag",
+    TRUE ~ "time"
+  )) %>%
+  filter(!str_detect(method, "varnorm")) %>%
+  filter(!str_detect(method, "leadlagNorm")) %>%
+  #  mutate(kstr = as.character(k)) %>%
+  mutate(Top = as.character(100*(1-k))) %>%
+  rename(weeks = myttime) %>%
+    ggplot(aes(x=Top, y=100*sens, ymin=100*sens_l,
+               ymax=100*sens_h,
+               group = weeks, color = weeks)) + geom_line() +
+    geom_pointrange(size = .01) +
+  #  ggplot(aes(x=Top, y=100*sens, group = weeks, color = weeks)) + geom_line() +
+  # geom_point(size = .5) +
+  # scale_color_manual(values = cbbPalette) +
+  labs(x="Top (%)", y= "Sensitivity (%)") +
+  facet_wrap(embedding ~ ., nrow = 3) +
+  theme_bw() +
+  theme(text = element_text(size = 16)) -> g
+#facet_wrap(embedding ~ ., nrow = 3) +
+#  theme_bw() -> g
+g
+ggsave("sensiti3.pdf", plot = g)
+ggsave("sensiti3.jpg", plot = g)
+
+  
 outdf %>%
   filter(!str_detect(method, "varnorm")) %>%
   filter(!str_detect(method, "leadlagNorm")) %>%
@@ -1171,6 +1437,35 @@ outdf %>%
 g
 ggsave("especif1.pdf", plot = g)
 ggsave("especif1.jpg", plot = g)
+
+outdf %>%
+  mutate(embedding = case_when(
+    str_detect(method, "notime") ~ "no embedding",
+    str_detect(method, "leadlag") ~ "time/leadlag",
+    TRUE ~ "time"
+  )) %>%
+  filter(!str_detect(method, "varnorm")) %>%
+  filter(!str_detect(method, "leadlagNorm")) %>%
+  #  mutate(kstr = as.character(k)) %>%
+  mutate(Top = as.character(100*(1-k))) %>%
+  rename(weeks = myttime) %>%
+#  ggplot(aes(x=Top, y = espec*100, group = weeks, color = weeks)) + geom_line() + 
+  ggplot(aes(x=Top, y = espec*100, 
+             ymax = 100*espec_h, ymin = 100*espec_l,
+             group = weeks, color = weeks)) + geom_line() + 
+  geom_pointrange(size = .01) +
+  #  ggplot(aes(x=myttime, y=100*sens, group = percentile, color = percentile)) + geom_line() +
+  #  scale_color_manual(values = cbbPalette) +
+  labs(x="Top (%)", y= "Specificity (%)") +
+  facet_wrap(embedding ~ ., nrow = 3) +
+  theme_bw() +
+  theme(text = element_text(size = 16)) -> g
+#facet_wrap(embedding ~ ., nrow = 3) +
+#  theme_bw() -> g
+g
+ggsave("especif3.pdf", plot = g)
+ggsave("especif3.jpg", plot = g)
+
 
 outdf %>%
   mutate(embedding = case_when(
